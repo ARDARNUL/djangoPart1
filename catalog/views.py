@@ -1,24 +1,21 @@
 from django.shortcuts import render
 
-# Create your views here.
 
 from .models import Book, Author, BookInstance, Genre
 
 
 def index(request):
     """View function for home page of site."""
-    # Generate counts of some of the main objects
     num_books = Book.objects.all().count()
     num_instances = BookInstance.objects.all().count()
-    # Available copies of books
     num_instances_available = BookInstance.objects.filter(status__exact='a').count()
-    num_authors = Author.objects.count()  # The 'all()' is implied by default.
+    num_authors = Author.objects.count() 
 
-    # Number of visits to this view, as counted in the session variable.
+
     num_visits = request.session.get('num_visits', 1)
     request.session['num_visits'] = num_visits+1
 
-    # Render the HTML template index.html with the data in the context variable.
+
     return render(
         request,
         'index.html',
@@ -70,7 +67,7 @@ class LoanedBooksByUserListView(LoginRequiredMixin, generic.ListView):
         )
 
 
-# Added as part of challenge!
+
 from django.contrib.auth.mixins import PermissionRequiredMixin
 
 
@@ -91,7 +88,6 @@ from django.urls import reverse
 import datetime
 from django.contrib.auth.decorators import login_required, permission_required
 
-# from .forms import RenewBookForm
 from catalog.forms import RenewBookForm
 
 
@@ -101,22 +97,18 @@ def renew_book_librarian(request, pk):
     """View function for renewing a specific BookInstance by librarian."""
     book_instance = get_object_or_404(BookInstance, pk=pk)
 
-    # If this is a POST request then process the Form data
     if request.method == 'POST':
 
-        # Create a form instance and populate it with data from the request (binding):
         form = RenewBookForm(request.POST)
 
-        # Check if the form is valid:
+
         if form.is_valid():
-            # process the data in form.cleaned_data as required (here we just write it to the model due_back field)
             book_instance.due_back = form.cleaned_data['renewal_date']
             book_instance.save()
 
-            # redirect to a new URL:
             return HttpResponseRedirect(reverse('all-borrowed'))
 
-    # If this is a GET (or any other method) create the default form
+
     else:
         proposed_renewal_date = datetime.date.today() + datetime.timedelta(weeks=3)
         form = RenewBookForm(initial={'renewal_date': proposed_renewal_date})
@@ -143,7 +135,7 @@ class AuthorCreate(PermissionRequiredMixin, CreateView):
 
 class AuthorUpdate(PermissionRequiredMixin, UpdateView):
     model = Author
-    fields = '__all__' # Not recommended (potential security issue if more fields added)
+    fields = '__all__' 
     permission_required = 'catalog.can_mark_returned'
 
 
@@ -153,7 +145,7 @@ class AuthorDelete(PermissionRequiredMixin, DeleteView):
     permission_required = 'catalog.can_mark_returned'
 
 
-# Classes created for the forms challenge
+
 class BookCreate(PermissionRequiredMixin, CreateView):
     model = Book
     fields = ['title', 'author', 'summary', 'isbn', 'genre', 'language']
